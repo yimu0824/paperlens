@@ -1,0 +1,24 @@
+{
+  "id": "deep-night",
+  "name": "深空夜读",
+  "dark": true,
+  "font": "'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif",
+  "vars": {
+    "--bg": "#0f1420",
+    "--bg-image": "none",
+    "--panel": "#171e2e",
+    "--panel-2": "#1e2740",
+    "--text": "#e5eaf3",
+    "--text-dim": "#8b96ab",
+    "--border": "#2a3550",
+    "--accent": "#4f8cff",
+    "--accent-2": "#7aa7ff",
+    "--accent-soft": "#20304f",
+    "--topbar": "#131a2a",
+    "--topbar-text": "#9db8ff",
+    "--head-dot1": "#4f8cff",
+    "--head-dot2": "#a78bfa",
+    "--head-dot3": "#38bdf8",
+    "--shadow": "0 1px 6px rgba(0,0,0,.4)"
+  }
+}

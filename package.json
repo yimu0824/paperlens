@@ -1,0 +1,59 @@
+{
+  "name": "paperlens",
+  "productName": "PaperLens",
+  "version": "1.1.0",
+  "description": "PaperLens 论文研读台 - 类 NotebookLM 的本地论文阅读、结构化中英对照与笔记工具",
+  "author": "PaperLens",
+  "license": "MIT",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server/server.js",
+    "dist": "electron-builder --win nsis portable",
+    "dist:dir": "electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.paperlens.app",
+    "productName": "PaperLens",
+    "copyright": "Copyright © 2026 PaperLens",
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "public/**/*",
+      "themes/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PaperLens",
+      "artifactName": "PaperLens-${version}-setup.exe"
+    },
+    "portable": {
+      "artifactName": "PaperLens-${version}-portable.exe"
+    },
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    }
+  },
+  "dependencies": {
+    "pdfjs-dist": "4.10.38",
+    "mammoth": "^1.9.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

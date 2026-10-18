@@ -1,0 +1,24 @@
+{
+  "id": "blue-business",
+  "name": "蓝色商务（默认）",
+  "dark": false,
+  "font": "'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif",
+  "vars": {
+    "--bg": "#e9eef7",
+    "--bg-image": "none",
+    "--panel": "#ffffff",
+    "--panel-2": "#f6f8fc",
+    "--text": "#1f2937",
+    "--text-dim": "#64748b",
+    "--border": "#d8e0ec",
+    "--accent": "#2563eb",
+    "--accent-2": "#1d4ed8",
+    "--accent-soft": "#e8efff",
+    "--topbar": "#ffffff",
+    "--topbar-text": "#1e3a8a",
+    "--head-dot1": "#2563eb",
+    "--head-dot2": "#7c3aed",
+    "--head-dot3": "#0ea5e9",
+    "--shadow": "0 1px 4px rgba(30,58,138,.08)"
+  }
+}

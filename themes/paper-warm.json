@@ -1,0 +1,24 @@
+{
+  "id": "paper-warm",
+  "name": "米白纸感",
+  "dark": false,
+  "font": "Georgia, 'Microsoft YaHei UI', 'Microsoft YaHei', serif",
+  "vars": {
+    "--bg": "#f1ece2",
+    "--bg-image": "none",
+    "--panel": "#fbf8f1",
+    "--panel-2": "#f4efe4",
+    "--text": "#3d3428",
+    "--text-dim": "#8a7d68",
+    "--border": "#e0d7c4",
+    "--accent": "#9a6b2f",
+    "--accent-2": "#7c5220",
+    "--accent-soft": "#f3e8d3",
+    "--topbar": "#fbf8f1",
+    "--topbar-text": "#7c5220",
+    "--head-dot1": "#9a6b2f",
+    "--head-dot2": "#b45309",
+    "--head-dot3": "#5f7f4a",
+    "--shadow": "0 1px 4px rgba(90,70,40,.12)"
+  }
+}

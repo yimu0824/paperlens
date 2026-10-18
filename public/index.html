@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:* http://localhost:*">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaperLens · 论文研读台</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand"><span class="logo">📘</span> PaperLens <span class="sub">论文研读台</span></div>
+  <div class="top-actions">
+    <button id="btn-upload" class="btn primary">＋ 上传文献</button>
+    <input id="file-input" type="file" accept=".txt,.md,.markdown,.pdf,.docx" multiple hidden>
+    <button id="btn-export" class="btn">导出 PDF</button>
+    <button id="btn-settings" class="btn" title="设置">⚙ 设置</button>
+  </div>
+</header>
+
+<main id="layout">
+  <!-- ① 文章阅读区 -->
+  <section class="zone" id="zone-reader">
+    <div class="zone-head">
+      <span class="zone-title"><i class="dot d1"></i>文章阅读区</span>
+      <span class="zone-actions">
+        <button class="btn mini" id="btn-drawer" title="文件目录">☰ 目录</button>
+        <button class="btn mini" id="btn-original" hidden title="原文视图：按原版面逐页呈现 PDF，可划词标注">📄 原文</button>
+        <button class="btn mini" id="btn-parallel" hidden title="双栏对照：左原文 / 右译文还原排版">📖 对照</button>
+        <button class="btn mini" id="btn-translate" title="调用 API 将英文段落翻译为中文">译 翻译全文</button>
+        <button class="btn mini" id="btn-toggle-zh" title="显示/隐藏中文对照">中 对照</button>
+        <button class="btn mini" id="btn-gutter" title="显示/隐藏批注栏">💬 批注栏</button>
+        <span id="parallel-tools" class="parallel-tools" hidden>
+          <button class="btn mini toggle-on" id="btn-col-orig" title="显示/隐藏左栏原文">原文</button>
+          <button class="btn mini toggle-on" id="btn-col-zh" title="显示/隐藏右栏译文">译文</button>
+          <button class="btn mini" id="btn-zoom-out" title="缩小">－</button>
+          <span id="zoom-val" class="dim">100%</span>
+          <button class="btn mini" id="btn-zoom-in" title="放大（高清渲染）">＋</button>
+        </span>
+      </span>
+    </div>
+    <div class="zone-body">
+      <aside id="drawer" class="drawer">
+        <div class="drawer-head">
+          <span>文献目录</span><span id="file-count" class="dim"></span>
+        </div>
+        <div class="drawer-search"><input id="file-search" placeholder="搜索文件…"></div>
+        <div id="file-list" class="file-list"></div>
+        <div class="drawer-foot dim">支持 txt / md / pdf / docx<br>数据存储于 E 盘数据目录</div>
+      </aside>
+      <div id="reader-wrap" class="reader-wrap">
+        <div id="reader-head" class="reader-head">
+          <span id="reader-title" class="reader-title">未打开文献</span>
+          <span id="reader-meta" class="dim"></span>
+          <span id="trans-progress" class="trans-progress" hidden></span>
+        </div>
+        <div id="reader-scroll" class="reader-scroll">
+          <div id="reader-content" class="reader-content"></div>
+        </div>
+        <div id="gutter" class="gutter"></div>
+        <div id="drop-hint" class="drop-hint" hidden>松开鼠标即可导入文献</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="splitter" id="sp1"></div>
+
+  <!-- ② 实时笔记与智能纪要区 -->
+  <section class="zone" id="zone-notes">
+    <div class="zone-head">
+      <span class="zone-title"><i class="dot d2"></i>实时笔记 · 智能纪要</span>
+      <span class="zone-actions">
+        <button class="tab-btn active" data-tab="notes">实时笔记</button>
+        <button class="tab-btn" data-tab="summary">智能纪要</button>
+      </span>
+    </div>
+    <div class="zone-body">
+      <div id="tab-notes" class="tab-pane active">
+        <div class="pane-tip dim" id="notes-tip">在左侧阅读区选中文字 → 点击「转入笔记」，即可在此记录想法，批注实时同步到原文。</div>
+        <div id="notes-list" class="notes-list"></div>
+      </div>
+      <div id="tab-summary" class="tab-pane">
+        <div class="summary-bar">
+          <button id="btn-summary" class="btn primary">✦ 生成智能纪要</button>
+          <span id="summary-meta" class="dim"></span>
+        </div>
+        <div id="summary-body" class="summary-body md-body">
+          <div class="pane-tip dim">打开文献后点击「生成智能纪要」，AI 将自动分析全文并生成结构化纪要；纪要随文献保存，再次打开自动显示。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="splitter" id="sp2"></div>
+
+  <!-- ③ AI 问答检索区 -->
+  <section class="zone" id="zone-chat">
+    <div class="zone-head">
+      <span class="zone-title"><i class="dot d3"></i>AI 问答检索区</span>
+      <span class="zone-actions">
+        <select id="chat-intensity" class="sel" title="思考强度">
+          <option value="fast">⚡ 快速</option>
+          <option value="standard" selected>🧠 标准</option>
+          <option value="deep">🔬 深度思考</option>
+        </select>
+        <label class="chk" title="把当前文献的纪要、你的标注与批注提供给 AI 作为上下文"><input type="checkbox" id="chat-use-doc"> 结合当前文献</label>
+        <button class="btn mini" id="btn-chat-history">🕘 历史</button>
+        <button class="btn mini" id="btn-chat-new">新会话</button>
+      </span>
+    </div>
+    <div class="zone-body chat-body">
+      <div id="chat-msgs" class="chat-msgs">
+        <div class="chat-empty dim">
+          <p>👋 直接向我提问，例如：</p>
+          <ul><li>这篇文献的核心贡献是什么？</li><li>用通俗语言解释第 3 节的方法</li><li>帮我梳理相关工作的研究脉络</li></ul>
+          <p class="mini-dim">问答 API 独立配置，可在 ⚙ 设置中修改模型与 Key</p>
+        </div>
+      </div>
+      <div id="chat-history" class="chat-history" hidden>
+        <div class="ch-head">
+          <span class="ch-title-main">🕘 问答历史</span>
+          <span class="ch-ops">
+            <button class="btn mini primary" id="btn-chat-save-current">★ 保存当前会话</button>
+            <button class="btn mini" id="btn-chat-clear-unsaved">清空未保存</button>
+            <button class="btn mini" id="btn-chat-history-close">✕</button>
+          </span>
+        </div>
+        <div id="chat-history-list" class="ch-list"></div>
+      </div>
+      <div class="chat-input-wrap">
+        <textarea id="chat-input" rows="2" placeholder="输入问题，Enter 发送 / Shift+Enter 换行"></textarea>
+        <button id="btn-chat-send" class="btn primary">发送</button>
+        <button id="btn-chat-stop" class="btn danger" hidden>停止</button>
+      </div>
+      <div id="chat-model-line" class="dim chat-model-line"></div>
+    </div>
+  </section>
+</main>
+
+<!-- 划词工具栏 -->
+<div id="sel-toolbar" class="sel-toolbar" hidden>
+  <span class="swatches" id="swatches"></span>
+  <button data-act="note" title="写下批注，同步到原文边栏">💬 批注</button>
+  <button data-act="transfer" title="转入实时笔记">⇥ 转入笔记</button>
+  <button data-act="copy">⧉ 复制</button>
+</div>
+
+<!-- 标注气泡 -->
+<div id="ann-popover" class="ann-popover" hidden>
+  <div class="swatches" id="pop-swatches"></div>
+  <textarea id="pop-note" rows="3" placeholder="编辑批注…（自动保存）"></textarea>
+  <div class="pop-row">
+    <button class="btn mini primary" id="pop-transfer">转入笔记</button>
+    <button class="btn mini danger" id="pop-delete">删除标注</button>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div id="modal-mask" class="modal-mask" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">⚙ 设置</span>
+      <button class="btn mini" id="btn-modal-close">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="mtab active" data-mtab="api">API 配置</button>
+      <button class="mtab" data-mtab="theme">外观主题</button>
+      <button class="mtab" data-mtab="storage">数据与存储</button>
+      <button class="mtab" data-mtab="about">关于</button>
+    </div>
+    <div class="modal-body">
+      <div class="mtab-pane active" data-mpane="api">
+        <div class="cfg-card" id="cfg-process">
+          <h3>📚 文献处理 API（翻译 + 智能纪要）</h3>
+          <div class="cfg-grid">
+            <label>接口地址 Base URL</label><input name="baseUrl" placeholder="https://api.deepseek.com">
+            <label>API Key</label><input name="apiKey" type="password" placeholder="">
+            <label>默认模型</label><input name="model" placeholder="deepseek-chat">
+            <label>深度思考模型</label><input name="reasoningModel" placeholder="deepseek-reasoner">
+          </div>
+          <div class="cfg-foot"><span class="dim key-state"></span><button class="btn mini test-btn">测试连接</button></div>
+        </div>
+        <div class="cfg-card" id="cfg-chat">
+          <h3>💬 AI 问答 API（独立配置）</h3>
+          <div class="cfg-grid">
+            <label>接口地址 Base URL</label><input name="baseUrl" placeholder="https://api.deepseek.com">
+            <label>API Key</label><input name="apiKey" type="password" placeholder="">
+            <label>默认模型（标准/快速）</label><input name="model" placeholder="deepseek-chat">
+            <label>深度思考模型（深度思考档）</label><input name="reasoningModel" placeholder="deepseek-reasoner">
+            <label>默认思考强度</label>
+            <select name="intensity"><option value="fast">⚡ 快速</option><option value="standard" selected>🧠 标准</option><option value="deep">🔬 深度思考</option></select>
+          </div>
+          <div class="cfg-foot"><span class="dim key-state"></span><button class="btn mini test-btn">测试连接</button></div>
+        </div>
+        <p class="dim cfg-note">Key 仅保存在本机数据目录，不上传任何第三方。留空 Key 表示保持原有配置。</p>
+      </div>
+      <div class="mtab-pane" data-mpane="theme">
+        <h3>🎨 主题素材</h3>
+        <div id="theme-presets" class="theme-presets"></div>
+        <h3>自定义微调（即时生效）</h3>
+        <div class="cfg-grid theme-override">
+          <label>强调色</label><input type="color" data-ov="--accent">
+          <label>界面背景</label><input type="color" data-ov="--bg">
+          <label>面板背景</label><input type="color" data-ov="--panel">
+          <label>正文文字</label><input type="color" data-ov="--text">
+          <label>界面字号</label>
+          <div class="font-scale"><input type="range" id="font-scale" min="0.85" max="1.3" step="0.05"><span id="font-scale-val" class="dim"></span></div>
+        </div>
+        <h3>背景图片素材</h3>
+        <div class="bg-row">
+          <button class="btn mini" id="btn-bg-pick">选择背景图片…</button>
+          <input type="file" id="bg-input" accept=".png,.jpg,.jpeg,.webp,.gif" hidden>
+          <button class="btn mini" id="btn-bg-clear">清除背景</button>
+          <span id="bg-state" class="dim"></span>
+        </div>
+        <h3>导入主题包</h3>
+        <div class="bg-row">
+          <button class="btn mini" id="btn-theme-import">导入 theme.json…</button>
+          <input type="file" id="theme-input" accept=".json" hidden>
+          <span class="dim">格式：{ "name": "我的主题", "vars": { "--accent": "#xxx", ... } }</span>
+        </div>
+      </div>
+      <div class="mtab-pane" data-mpane="storage">
+        <h3>💾 数据目录（默认存储于 E 盘）</h3>
+        <div class="bg-row"><code id="data-root" class="data-root"></code></div>
+        <div class="bg-row">
+          <button class="btn mini" id="btn-dataroot-change">修改数据目录…</button>
+          <button class="btn mini" id="btn-open-folder">打开数据目录</button>
+          <span id="data-size" class="dim"></span>
+        </div>
+        <p class="dim cfg-note">重复文件识别：上传与导出时按文件内容哈希自动识别重复；重新上传相同文件可选择「按新文件导入」，获得独立的标注与纪要。</p>
+      </div>
+      <div class="mtab-pane" data-mpane="about">
+        <h3>📘 PaperLens 论文研读台 v1.0</h3>
+        <p class="dim">类 NotebookLM 本地科研学习软件。<br>
+        ① 文章阅读区：目录、中英对照、划词标色批注、一键转入笔记；<br>
+        ② 实时笔记与智能纪要区：批注双向同步、时间戳、AI 结构化纪要；<br>
+        ③ AI 问答检索区：流式对话、思考强度可调、独立 API；<br>
+        支持导出带标注批注与纪要的 PDF、重复文件识别、E 盘存储、主题素材更换。<br>
+        <b>输入急救</b>：若个别时候输入框打字无反应（Windows 输入法会话偶发失效），按 <b>Ctrl+Alt+F</b> 立即重新激活当前输入框，无需重启软件。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap" class="toast-wrap"></div>
+<script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
