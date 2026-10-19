@@ -56,7 +56,7 @@
 ### 从源码运行
 
 ```bash
-git clone https://github.com/<your-name>/paperlens.git
+git clone https://github.com/yimu0824/paperlens.git
 cd paperlens
 npm install
 npm start          # 桌面版
