@@ -13,6 +13,16 @@ const { startServer } = require('../server/server');
 
 let win = null;
 
+/* 打包运行时没有控制台，把日志同时落盘，便于排查启动问题 */
+function bootLog(...args) {
+  const line = `[${new Date().toISOString()}] ${args.join(' ')}`;
+  console.log(line);
+  try {
+    const f = path.join(app.getPath('userData'), 'boot.log');
+    fs.appendFileSync(f, line + '\n');
+  } catch (e) { /* ignore */ }
+}
+
 /* 数据目录：开发时用项目内 data；打包后优先 exe 同级 data（可写），否则退回用户数据目录，
    避免向只读的 app.asar 写入。 */
 function resolveDataPaths() {
@@ -34,9 +44,17 @@ function resolveDataPaths() {
 }
 
 async function createWindow() {
-  console.log('[boot] 1/4 启动本地服务…');
-  const { port } = await startServer({ silent: false, ...resolveDataPaths() });
-  console.log('[boot] 2/4 创建窗口…');
+  bootLog('[boot] 1/4 启动本地服务…');
+  const paths = resolveDataPaths();
+  bootLog('[boot] 数据目录:', paths.baseDataDir, '| 运行时配置:', paths.runtimeFile);
+  let port;
+  try {
+    ({ port } = await startServer({ silent: false, ...paths }));
+  } catch (e) {
+    bootLog('[boot] 服务启动失败:', e && e.stack || e);
+    throw e;
+  }
+  bootLog('[boot] 2/4 创建窗口…');
   win = new BrowserWindow({
     width: 1560, height: 950, minWidth: 1080, minHeight: 660,
     show: true, backgroundColor: '#e9eef7',
@@ -60,7 +78,7 @@ async function createWindow() {
   });
   /* 窗口显示与焦点：页面就绪即前置，保证输入法(IME)上下文正确绑定 */
   win.webContents.once('did-finish-load', () => {
-    try { if (!win.isVisible()) win.show(); win.focus(); console.log('[boot] 4/4 窗口已显示并聚焦'); } catch (e) {}
+    try { if (!win.isVisible()) win.show(); win.focus(); bootLog('[boot] 4/4 窗口已显示并聚焦'); } catch (e) {}
   });
   setTimeout(() => { try { if (win && !win.isVisible()) win.show(); } catch (e) {} }, 6000);
   /* IME 自愈：窗口重新获焦时让 webContents 重新接管键盘，避免切换窗口后输入法失效 */
@@ -106,7 +124,7 @@ async function createWindow() {
       }, 3000);
     });
   }
-  console.log('[boot] 3/4 加载页面 http://127.0.0.1:' + port);
+  bootLog('[boot] 3/4 加载页面 http://127.0.0.1:' + port);
   await win.loadURL(`http://127.0.0.1:${port}`);
   win.on('closed', () => { win = null; });
 }
